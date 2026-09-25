@@ -189,6 +189,21 @@ jobs:
             -t ${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.image }}:${{ github.sha }} \
             ./${{ matrix.service }}
 
+      # Security scan before image is pushed - Task 10.2D
+      - name: Docker Scout vulnerability scan
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: local://${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.image }}:${{ github.sha }}
+          only-severities: critical,high
+          exit-code: false
+
+      - name: Docker Scout recommendations
+        uses: docker/scout-action@v1
+        with:
+          command: recommendations
+          image: local://${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.image }}:${{ github.sha }}
+
       - name: Push Docker image with commit SHA
         run: |
           docker push \
